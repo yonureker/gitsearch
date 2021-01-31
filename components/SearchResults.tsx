@@ -32,13 +32,14 @@ export default function SearchResults() {
     setIsLoading(true);
 
     fetch(
-      `https://api.github.com/search/${option}?q=${query}&page=1&per_page=20`,
-      {
-        headers: {
-          // Github authentication is needed for less limited requests
-          authorization: "token " + process.env.REACT_NATIVE_TOKEN,
-        }
-      }
+      `https://api.github.com/search/${option}?q=${query}&page=1&per_page=20`
+      // ,
+      // {
+      //   headers: {
+      //     // Github authentication is needed for less limited requests
+      //     authorization: "token " + process.env.REACT_NATIVE_TOKEN,
+      //   }
+      // }
     )
       .then((resp) => resp.json())
       .then(({ items }) => {
