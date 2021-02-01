@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { ActivityIndicator } from "react-native-paper";
 import * as Linking from "expo-linking";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -22,11 +22,10 @@ export default function SearchResults() {
 
   useEffect(() => {
     if (query.length >= 3) {
-      handleSearch(query);
+      const timeoutId =  setTimeout(() => handleSearch(query), 1000);
+      return () => clearTimeout(timeoutId)
     }
   }, [query]);
-
-  
 
   const handleSearch = (query) => {
     setIsLoading(true);
@@ -79,8 +78,12 @@ export default function SearchResults() {
       {isLoading && <ActivityIndicator size="large" animating={true} />}
 
       <FlatList
-        style={{ maxHeight: 280, borderTopLeftRadius: 10,
-          borderBottomLeftRadius: 10, borderRadius: 10}}
+        style={{
+          maxHeight: 280,
+          borderTopLeftRadius: 10,
+          borderBottomLeftRadius: 10,
+          borderRadius: 10,
+        }}
         keyExtractor={(item) => item.url}
         data={options}
         initialNumToRender={10}
@@ -138,7 +141,7 @@ export default function SearchResults() {
                           />
                         </View>
                       </View>
-                      <View style={{ flex: 1}}>
+                      <View style={{ flex: 1 }}>
                         <Text style={{ alignSelf: "center" }}>
                           {item.stars}
                         </Text>
@@ -165,11 +168,11 @@ const styles = StyleSheet.create({
     maxHeight: 300,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#E8E8E8',
+    borderColor: "#E8E8E8",
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
     borderRadius: 10,
-    overflow: 'hidden'
+    overflow: "hidden",
   },
   itemContainer: {
     flexDirection: "row",
@@ -201,7 +204,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FAFBFC",
     alignItems: "center",
     paddingLeft: 5,
-    paddingRight: 5
+    paddingRight: 5,
     // padding: 10,
   },
   image: { height: 40, width: 40, marginRight: 10 },
