@@ -4,8 +4,12 @@ import { RadioButton } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function RadioButtonContainer() {
-  const option = useSelector((state) => state.searchOption.value);
   const dispatch = useDispatch();
+  const option = useSelector((state) => state.searchOption.value);
+  const darkMode = useSelector(state => state.darkMode.theme)
+  
+  const textStyle = darkMode ? styles.darkModeText : null;
+
 
   return (
     <RadioButton.Group
@@ -18,12 +22,12 @@ export default function RadioButtonContainer() {
     >
       <View style={{ flexDirection: "row", justifyContent: "space-evenly" }}>
         <View style={styles.container}>
-          <RadioButton value="users"/>
-          <Text>Search Users</Text>
+          <RadioButton value="users" uncheckedColor="gray" status={option === 'users' ? 'checked' : "unchecked"}/>
+          <Text style={textStyle}>Search Users</Text>
         </View>
         <View style={styles.container}>
-          <RadioButton value="repositories" />
-          <Text>Search Repositories</Text>
+          <RadioButton value="repositories" uncheckedColor="gray" status={option === 'repositories' ? 'checked' : "unchecked"}/>
+          <Text style={textStyle}>Search Repositories</Text>
         </View>
         {/* <View style={styles.container}>
           <RadioButton value="topics" />
@@ -40,4 +44,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  darkModeText : {
+    color: 'white'
+  }
 });

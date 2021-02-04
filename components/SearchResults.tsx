@@ -16,6 +16,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 export default function SearchResults() {
   const query = useSelector((state) => state.query.text);
   const option = useSelector((state) => state.searchOption.value);
+  const darkMode = useSelector(state => state.darkMode.theme)
+
+  const textStyle = darkMode ? styles.darkModeText : null;
+  const backgroundStyle = darkMode ? styles.darkModeBackground : null
 
   const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState([]);
@@ -80,12 +84,13 @@ export default function SearchResults() {
       <FlatList
         style={{
           maxHeight: 280,
-          borderTopLeftRadius: 10,
-          borderBottomLeftRadius: 10,
-          borderRadius: 10,
+          // borderTopLeftRadius: 10,
+          // borderBottomLeftRadius: 10,
+          // borderRadius: 10,
         }}
         keyExtractor={(item) => item.url}
         data={options}
+        indicatorStyle="black"
         initialNumToRender={10}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => Linking.openURL(`${item.url}`)}>
@@ -98,7 +103,7 @@ export default function SearchResults() {
                   />
                 </View>
                 <View>
-                  <Text numberOfLines={1} ellipsizeMode="tail">
+                  <Text numberOfLines={1} ellipsizeMode="tail" style={textStyle}>
                     {item.login}
                   </Text>
                 </View>
@@ -124,7 +129,7 @@ export default function SearchResults() {
                   >
                     <View style={{ flex: 10 }}>
                       <Text
-                        style={{ fontWeight: "bold" }}
+                        style={[textStyle, styles.boldText]}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
@@ -132,7 +137,7 @@ export default function SearchResults() {
                       </Text>
                     </View>
                     <View style={styles.starSnippetContainer}>
-                      <View style={styles.starIconBox}>
+                      <View style={[styles.starIconBox, backgroundStyle]}>
                         <View>
                           <MaterialIcons
                             name="star-border"
@@ -142,14 +147,14 @@ export default function SearchResults() {
                         </View>
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ alignSelf: "center" }}>
+                        <Text style={[{alignSelf: "center"}, textStyle ]}>
                           {item.stars}
                         </Text>
                       </View>
                     </View>
                   </View>
                   <View style={{ marginTop: 2 }}>
-                    <Text numberOfLines={1} ellipsizeMode="tail">
+                    <Text numberOfLines={1} ellipsizeMode="tail" style={textStyle}>
                       {item.description}
                     </Text>
                   </View>
@@ -178,8 +183,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 5,
     paddingLeft: 10,
-    borderWidth: 1,
-    borderColor: "#fcfcf7",
+    borderBottomWidth: 1,
+    borderColor: "#F2F2F2",
     alignItems: "center",
   },
   starSnippetContainer: {
@@ -208,4 +213,13 @@ const styles = StyleSheet.create({
     // padding: 10,
   },
   image: { height: 40, width: 40, marginRight: 10 },
+  darkModeText : {
+    color: 'white'
+  },
+  boldText: {
+    fontWeight: 'bold'
+  },
+  darkModeBackground: {
+    backgroundColor: 'black'
+  }
 });
