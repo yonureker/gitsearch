@@ -9,6 +9,8 @@ import { setContext } from "@apollo/client/link/context";
 import rootReducer from "./reducers/rootReducer";
 import Main from "./components/Main";
 
+require('dotenv').config()
+
 
 
 export default function App() {
@@ -19,7 +21,7 @@ export default function App() {
   });
 
   const githubToken = process.env.TOKEN
-  console.log(githubToken)
+  console.log(process.env)
 
   const authLink = setContext((_, { headers }) => {
     // get the authentication token from local storage if it exists
