@@ -6,71 +6,91 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  FlatList,
+  FlatList
 } from "react-native";
 import { useSelector } from "react-redux";
 import { ActivityIndicator } from "react-native-paper";
 import * as Linking from "expo-linking";
 import { MaterialIcons } from "@expo/vector-icons";
+import { gql, useLazyQuery } from "@apollo/client";
+
+const GET_USERS = gql`
+  query SearchUsers($userQuery: String!) {
+    search(query: $userQuery, type: USER, first: 20) {
+      edges {
+        node {
+          ... on User {
+            avatarUrl
+            id
+            login
+            url
+          }
+        }
+      }
+    }
+  }
+`;
+
+const GET_REPOSITORIES = gql`
+  query SearchRepositories($userQuery: String!) {
+    search(query: $userQuery, type: REPOSITORY, first: 20) {
+      edges {
+        node {
+          ... on Repository {
+            id
+            url
+            description
+            stargazerCount
+            nameWithOwner
+            owner {
+              avatarUrl
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 export default function SearchResults() {
   const query = useSelector((state) => state.query.text);
   const option = useSelector((state) => state.searchOption.value);
-  const darkMode = useSelector(state => state.darkMode.theme)
+  const darkMode = useSelector((state) => state.darkMode.theme);
 
   const textStyle = darkMode ? styles.darkModeText : null;
-  const backgroundStyle = darkMode ? styles.darkModeBackground : null
+  const backgroundStyle = darkMode ? styles.darkModeBackground : null;
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [options, setOptions] = useState([]);
+  const [getUsers, { loading: loadingUsers, data: userData }] = useLazyQuery(
+    GET_USERS,
+    {
+      variables: { userQuery: query }
+    }
+  );
+
+  const [
+    getRepositories,
+    { loading: loadingRepositories, data: repositoryData }
+  ] = useLazyQuery(GET_REPOSITORIES, {
+    variables: { userQuery: query }
+  });
+
+  const options = userData || repositoryData;
+
+  //repositoryData.search.edges
 
   useEffect(() => {
     if (query.length >= 3) {
-      const timeoutId =  setTimeout(() => handleSearch(query), 1000);
-      return () => clearTimeout(timeoutId)
+      const timeoutId = setTimeout(() => handleNewSearch(), 1000);
+      return () => clearTimeout(timeoutId);
     }
   }, [query]);
 
-  const handleSearch = (query) => {
-    setIsLoading(true);
-
-    fetch(
-      `https://api.github.com/search/${option}?q=${query}&page=1&per_page=20`
-      // ,
-      // {
-      //   headers: {
-      //     // Github authentication is needed for less limited requests
-      //     authorization: "token " + process.env.REACT_NATIVE_TOKEN,
-      //   }
-      // }
-    )
-      .then((resp) => resp.json())
-      .then(({ items }) => {
-        let options;
-        switch (option) {
-          case "users":
-            options = items.map((i) => ({
-              avatar_url: i.avatar_url,
-              id: i.id,
-              login: i.login,
-              url: i.html_url,
-            }));
-            break;
-          case "repositories":
-            options = items.map((i) => ({
-              avatar_url: i.owner.avatar_url,
-              id: i.id,
-              full_name: i.full_name,
-              url: i.html_url,
-              stars: i.stargazers_count,
-              description: i.description,
-            }));
-            break;
-          default:
-        }
-        setOptions(options);
-        setIsLoading(false);
-      });
+  const handleNewSearch = () => {
+    if (option === "users") {
+      getUsers();
+    } else {
+      getRepositories();
+    }
   };
 
   if (query === "") {
@@ -79,91 +99,105 @@ export default function SearchResults() {
 
   return (
     <View style={styles.screenContainer}>
-      {isLoading && <ActivityIndicator size="large" animating={true} />}
+      {(loadingUsers || loadingRepositories) && (
+        <ActivityIndicator style={{padding: 10}} size="large" animating={true} />
+      )}
 
-      <FlatList
-        style={{
-          maxHeight: 280,
-          // borderTopLeftRadius: 10,
-          // borderBottomLeftRadius: 10,
-          // borderRadius: 10,
-        }}
-        keyExtractor={(item) => item.url}
-        data={options}
-        indicatorStyle="black"
-        initialNumToRender={10}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => Linking.openURL(`${item.url}`)}>
-            {option === "users" && (
-              <View style={styles.itemContainer}>
-                <View>
-                  <Image
-                    source={{ uri: `${item.avatar_url}` }}
-                    style={styles.image}
-                  />
-                </View>
-                <View>
-                  <Text numberOfLines={1} ellipsizeMode="tail" style={textStyle}>
-                    {item.login}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {option === "repositories" && (
-              <View style={styles.itemContainer}>
-                <View>
-                  <Image
-                    source={{ uri: `${item.avatar_url}` }}
-                    style={styles.image}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View
-                    style={{
-                      flex: 1,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <View style={{ flex: 10 }}>
-                      <Text
-                        style={[textStyle, styles.boldText]}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {item.full_name}
-                      </Text>
-                    </View>
-                    <View style={styles.starSnippetContainer}>
-                      <View style={[styles.starIconBox, backgroundStyle]}>
-                        <View>
-                          <MaterialIcons
-                            name="star-border"
-                            size={16}
-                            color="gray"
-                          />
-                        </View>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[{alignSelf: "center"}, textStyle ]}>
-                          {item.stars}
-                        </Text>
-                      </View>
-                    </View>
+      {options && (
+        <FlatList
+          style={{
+            maxHeight: 280
+            // borderTopLeftRadius: 10,
+            // borderBottomLeftRadius: 10,
+            // borderRadius: 10,
+          }}
+          keyExtractor={(item) => item.node.id}
+          data={options.search.edges}
+          indicatorStyle="black"
+          initialNumToRender={10}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(`${item.node.url}`)}
+            >
+              {option === "users" && (
+                <View style={styles.itemContainer}>
+                  <View>
+                    <Image
+                      source={{ uri: `${item.node.avatarUrl}` }}
+                      style={styles.image}
+                    />
                   </View>
-                  <View style={{ marginTop: 2 }}>
-                    <Text numberOfLines={1} ellipsizeMode="tail" style={textStyle}>
-                      {item.description}
+                  <View>
+                    <Text
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      style={textStyle}
+                    >
+                      {item.node.login}
                     </Text>
                   </View>
                 </View>
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
-      />
+              )}
+
+              {option === "repositories" && (
+                <View style={styles.itemContainer}>
+                  <View>
+                    <Image
+                      source={{ uri: `${item.node.owner.avatarUrl}` }}
+                      style={styles.image}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View
+                      style={{
+                        flex: 1,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between"
+                      }}
+                    >
+                      <View style={{ flex: 10 }}>
+                        <Text
+                          style={[textStyle, styles.boldText]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {item.node.nameWithOwner}
+                        </Text>
+                      </View>
+                      <View style={styles.starSnippetContainer}>
+                        <View style={[styles.starIconBox, backgroundStyle]}>
+                          <View>
+                            <MaterialIcons
+                              name="star-border"
+                              size={16}
+                              color="gray"
+                            />
+                          </View>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[{ alignSelf: "center" }, textStyle]}>
+                            {item.node.stargazerCount}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={{ marginTop: 2 }}>
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={textStyle}
+                      >
+                        {item.node.description}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -177,7 +211,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
     borderRadius: 10,
-    overflow: "hidden",
+    overflow: "hidden"
   },
   itemContainer: {
     flexDirection: "row",
@@ -185,7 +219,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     borderBottomWidth: 1,
     borderColor: "#F2F2F2",
-    alignItems: "center",
+    alignItems: "center"
   },
   starSnippetContainer: {
     borderWidth: 1,
@@ -197,7 +231,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    flex: 1,
+    flex: 1
   },
   starIconBox: {
     height: "100%",
@@ -209,17 +243,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#FAFBFC",
     alignItems: "center",
     paddingLeft: 5,
-    paddingRight: 5,
+    paddingRight: 5
     // padding: 10,
   },
   image: { height: 40, width: 40, marginRight: 10 },
-  darkModeText : {
-    color: 'white'
+  darkModeText: {
+    color: "white"
   },
   boldText: {
-    fontWeight: 'bold'
+    fontWeight: "bold"
   },
   darkModeBackground: {
-    backgroundColor: 'black'
+    backgroundColor: "black"
   }
 });
