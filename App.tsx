@@ -18,7 +18,7 @@ export default function App() {
     uri: 'https://api.github.com/graphql',
   });
 
-  const githubToken = process.env.TOKEN
+  const githubToken = 'kek'
 
   const authLink = setContext((_, { headers }) => {
     // get the authentication token from local storage if it exists
