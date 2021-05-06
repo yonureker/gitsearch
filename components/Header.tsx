@@ -16,7 +16,10 @@ const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 export default function Header() {
   const dispatch = useDispatch();
-  const darkMode = useSelector(state => state.darkMode.theme)
+  const darkMode = useSelector(state => state.darkMode.theme);
+
+  const containerStyle = darkMode ? styles.darkModeContainer : null
+  const textStyle = darkMode ? styles.darkModeText : null;
 
   const handleChange = () => {
     dispatch({
@@ -27,9 +30,9 @@ export default function Header() {
   // const toggleDarkMode = () => ()
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <View style={styles.item}>
-        <Text>Onur Eker</Text>
+        <Text style={textStyle}>Onur Eker</Text>
       </View>
       <View style={{ flexDirection: "row" }}>
         <View style={styles.item}>
@@ -75,7 +78,7 @@ export default function Header() {
               Linking.openURL(`https://www.linkedin.com/in/onureker/`)
             }
           >
-            <Text>
+            <Text style={textStyle}>
               <Ionicons name="logo-linkedin" size={14} /> LinkedIn
             </Text>
           </Pressable>
@@ -84,7 +87,7 @@ export default function Header() {
           <Pressable
             onPress={() => Linking.openURL(`https://github.com/yonureker/`)}
           >
-            <Text>
+            <Text style={textStyle}>
               <Ionicons name="logo-github" size={14} /> Github
             </Text>
           </Pressable>
@@ -110,5 +113,11 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: "center",
     alignItems: "center",
+  },
+  darkModeText : {
+    color: 'white'
+  },
+  darkModeContainer : {
+    backgroundColor: '#2B2828',
   },
 });

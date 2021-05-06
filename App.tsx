@@ -3,36 +3,37 @@ import { Platform, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { Provider as PaperProvider } from "react-native-paper";
 import { Provider, useSelector } from "react-redux";
 import { createStore } from "redux";
-import { ApolloClient, InMemoryCache, ApolloProvider, HttpLink } from "@apollo/client";
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  HttpLink
+} from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
+import { TOKEN } from "react-native-dotenv";
 
 import rootReducer from "./reducers/rootReducer";
 import Main from "./components/Main";
 
-require('dotenv').config()
-
-
+const githubToken = TOKEN;
 
 export default function App() {
   const store = createStore(rootReducer);
 
   const httpLink = new HttpLink({
-    uri: 'https://api.github.com/graphql',
+    uri: "https://api.github.com/graphql"
   });
-
-  const githubToken = process.env.TOKEN
-  console.log(process.env)
 
   const authLink = setContext((_, { headers }) => {
     // get the authentication token from local storage if it exists
-    const token = 'Bearer ' + githubToken
+    const token = "Bearer " + githubToken;
     // return the headers to the context so httpLink can read them
     return {
       headers: {
         ...headers,
-        authorization: token ? token : null,
+        authorization: token ? token : null
       }
-    }
+    };
   });
 
   const client = new ApolloClient({
