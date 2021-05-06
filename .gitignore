@@ -15,6 +15,5 @@ npm-debug.*
 .env
 
 .vercel
-
-web-build/static/*
+.static
 
